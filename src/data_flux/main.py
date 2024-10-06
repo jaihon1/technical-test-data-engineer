@@ -9,7 +9,8 @@ async def main():
     logger.info("Data-Pipeline-Ingest module started")
 
     client = ClientAPI('http://localhost:8000')
-    ingestManager = IngestManager(client, endpoint=Endpoints.LISTEN_HISTORY)
+    version_id = 11
+    ingestManager = IngestManager(client, version_id=version_id, endpoint=Endpoints.USERS)
 
     await ingestManager.configure(request_size=100)
     await ingestManager.run(save=True)

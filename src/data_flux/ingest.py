@@ -5,7 +5,8 @@ import time
 from endpoints import Endpoints
 from logger import logger
 
-from schema import ApiSchema
+from api_schema import ApiSchema
+from data_schema import endpoint_builder_map
 from validator import ApiValidator
 
 
@@ -51,9 +52,10 @@ class Ingest:
 
 
 class IngestManager:
-    def __init__(self, client, endpoint=Endpoints.USERS):
+    def __init__(self, client, version_id, endpoint=Endpoints.USERS):
         self.client = client
-        self.endpoint = endpoint.value
+        self.version_id = version_id
+        self.endpoint = endpoint
 
         self.ingest = None
         self.request_size = None
@@ -63,15 +65,15 @@ class IngestManager:
 
     async def configure(self, request_size=10, total=None):
         logger.info("Setting up IngestManager Configuration")
-        logger.info(f"Testing connection endpoint: {self.endpoint}.")
+        logger.info(f"Testing connection endpoint: {self.endpoint.value}.")
 
-        data = await self.client.fetch(self.endpoint, {'page': 1, 'size': request_size}) # Dummy values required for the request.
+        data = await self.client.fetch(self.endpoint.value, {'page': 1, 'size': request_size}) # Dummy values required for the request.
 
         if data == None:
-            logger.error(f"Test connection failed for endpoint: {self.endpoint}. Aborting IngestManager configuration process.")
+            logger.error(f"Test connection failed for endpoint: {self.endpoint.value}. Aborting IngestManager configuration process.")
             raise ConnectionError
 
-        logger.info(f"Successfuly called endpoint: {self.endpoint}.")
+        logger.info(f"Successfuly called endpoint: {self.endpoint.value}.")
 
         validator = ApiValidator(ApiSchema)
         data_validated = validator.validate(data)
@@ -90,7 +92,7 @@ class IngestManager:
     async def run(self, save=False):
         start_time = time.time()
 
-        await self.ingest.execute(self.endpoint, self.request_size)
+        await self.ingest.execute(self.endpoint.value, self.request_size)
         self.ingest.validate()
 
         elapsed_time = time.time() - start_time
@@ -101,4 +103,16 @@ class IngestManager:
         if save:
             logger.info(f"Saving ingested data {len(self.ingest.data_validated)}")
             logger.info(self.ingest.data_validated[0])
+
+            # Dynamically find the proper mapping function
+            build_function = endpoint_builder_map.get(self.endpoint)
+
+            if build_function is None:
+                raise ValueError(f"No build function found for endpoint: {self.endpoint}")
+
+            # Mapping validated data to DataSchema used when persisting the data
+            data_to_persist = [build_function(data, self.version_id) for data in self.ingest.data_validated]
+
+            logger.info(data_to_persist[0])
+
             # TODO: Here goes the interface for inserting data to a data store location
