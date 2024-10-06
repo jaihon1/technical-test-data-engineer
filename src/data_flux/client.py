@@ -11,7 +11,7 @@ class ClientAPI:
         """
         self.base_url = base_url
 
-    async def fetch(self, endpoint, params=None):
+    async def fetch(self, endpoint, params=None, counter=None):
         """
         Makes an HTTP GET request to the given endpoint with optional query parameters.
 
@@ -29,6 +29,6 @@ class ClientAPI:
                     return await response.json()
 
             except Exception as e:
-                logger.error(f"Error making request to {url} with {params}: {e}")
+                logger.error(f"Error making request to {url} with {counter} {params}: {e}")
 
                 return None
