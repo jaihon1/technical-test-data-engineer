@@ -75,7 +75,7 @@ FOREIGN KEY (version_id) REFERENCES Versions(id)  -- Foreign key referencing Ver
 ```
 
 #### Versions Schema:
-Used to track different versions of the dataset.
+Utile pour track les différentes versions des dataset et pouvoir les expier.
 ```sql
 id INT NOT NULL,  -- Must be provided
 title VARCHAR(256) DEFAULT NULL,
