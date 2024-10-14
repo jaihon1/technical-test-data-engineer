@@ -68,9 +68,9 @@ track_id INT NOT NULL,  -- Must be provided
 version_id INT NOT NULL,  -- Must be provided
 created_at TIMESTAMP DEFAULT NULL,
 updated_at TIMESTAMP DEFAULT NULL,
-PRIMARY KEY (user_id, track_id, version_id),  -- Composite primary key on user_id, track_id, and version_id
-FOREIGN KEY (user_id) REFERENCES Users(id),  -- Foreign key referencing Users table
-FOREIGN KEY (track_id) REFERENCES Tracks(id)  -- Foreign key referencing Tracks table
+PRIMARY KEY (version_id, user_id, track_id),  -- Composite primary key on user_id, track_id, and version_id
+FOREIGN KEY (user_id, version_id) REFERENCES Users(id, version_id),  -- References both id and version_id in Users table
+FOREIGN KEY (track_id, version_id) REFERENCES Tracks(id, version_id), -- References both id and version_id in Tracks table
 FOREIGN KEY (version_id) REFERENCES Versions(id)  -- Foreign key referencing Versions table
 ```
 
@@ -85,10 +85,6 @@ PRIMARY KEY (id)  -- Primary key on id
 ```
 
 ### Étape 5
-Regarding the health of the pipeline, the goal was to establish a strong foundation that is simple and flexible enough to adapt to changes in future iterations. A local logging mechanism has been set up that currently logs all initiated network requests, indicating whether they were successful or failed. If a request is successful, the system also logs whether it passed validation. Additionally, after each batch request is completed, metrics regarding the throughput of the influx module are logged, including the number of requests per second and the number of processed data points per second.
-
-This is just the foundation of the project; many more items can be logged in future iterations depending on the client's specifications.
-
 Concernant la santé du pipeline, l'objectif était de mettre en place une base solide, simple et suffisamment flexible pour s'adapter aux changements des futures itérations. Un mécanisme de logging local a été mis en place, qui enregistre actuellement toutes les requêtes réseau initiées, en indiquant si elles ont réussi ou échoué. Si une requête est réussie, le système enregistre également si elle a passé la validation. De plus, après chaque requête par lot, des métriques relatives au débit du module d'influx sont journalisées, notamment le nombre de requêtes par seconde et le nombre de points de données traités par seconde.
 
 Ce n'est que la base du projet, beaucoup d'autres éléments pourront être journalisés dans les futures itérations, selon les spécifications du client.
